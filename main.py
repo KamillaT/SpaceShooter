@@ -14,6 +14,20 @@ def load_image(name, colorkey=None):
     return image
 
 
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(tiles_group, all_sprites)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Wall(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(tiles_group, all_sprites, walls_group)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
 class Menu:
     def __init__(self):
         self.in_menu = True
@@ -60,3 +74,12 @@ width, height = 1920, 1080
 screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 fps = 60
+
+all_sprites = pygame.sprite.Group()
+tiles_group = pygame.sprite.Group()
+walls_group = pygame.sprite.Group()
+tile_images = {'wall': load_image('images\\wall.png'),
+               'empty': load_image('images\\floor.png'),
+               'hole': load_image('images\\hole.png')}
+tile_width = 64
+tile_height = 64
