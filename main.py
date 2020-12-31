@@ -37,6 +37,23 @@ class Menu:
         screen.blit(font.render("Выход", 1, pygame.Color('red')),
                     (width // 3 + 70, height // 3 * 2 + 20))
 
+    def run_menu(self):
+        global in_game
+        self.draw_menu()
+        while self.in_menu:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.in_menu = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.pos[0] in range(width // 4, width // 4 * 3):
+                        if event.pos[1] in range(height // 3, height // 2):
+                            self.in_menu = False
+                            in_game = True
+                        elif event.pos[1] in range(height // 3 * 2, height // 6 * 5):
+                            self.in_menu = False
+            clock.tick(fps)
+            pygame.display.flip()
+
 
 pygame.init()
 width, height = 1920, 1080
