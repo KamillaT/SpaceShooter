@@ -28,6 +28,52 @@ class Wall(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
+class Hitbox(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.rect = pygame.Rect(x + 23, y + 6, 57, 75)
+        self.left = x + 23
+        self.top = y + 6
+        self.right = self.left + 57
+        self.bottom = self.top + 75
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(player_group, all_sprites)
+        pygame.key.set_repeat(10, 1)
+        self.image = load_image('images\\player.png', -1)
+        self.x = tile_width * pos_x
+        self.y = tile_height * pos_y
+        self.direction = 'right'
+        self.room = [self.x // 1280, self.y // 1280]
+        self.in_corridor = False
+        self.walk_cycle = 0
+        self.hp = 3
+        self.hitbox = Hitbox(self.x, self.y)
+        self.rect = self.image.get_rect().move(self.x, self.y)
+        self.gold = 0
+        self.gun = Pistol(self.rect.left, self.rect.top)
+
+    def move(self, dir, n):
+        self.rect[dir] += 5 * n
+        self.hitbox.rect[dir] += 5 * n
+        if dir == 0:
+            self.x += 5 * n
+            self.hitbox.left += 5 * n
+            self.hitbox.right += 5 * n
+        else:
+            self.y += 5 * n
+            self.hitbox.top += 5 * n
+            self.hitbox.bottom += 5 * n
+
+        self.room = [self.x // 1280, self.y // 1280]
+        self.in_corridor = self.hitbox.left % 1280 > 895 or self.hitbox.top % 1280 > 895 \
+                           or self.hitbox.right % 1280 < 64 or self.hitbox.bottom % 1280 < 64 or \
+                           self.hitbox.left % 1280 < 64 or self.hitbox.top % 1280 < 64 or \
+                           self.hitbox.right % 1280 > 895 or self.hitbox.bottom % 1280 > 895
+
+
 class Menu:
     def __init__(self):
         self.in_menu = True
@@ -75,9 +121,12 @@ screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 fps = 60
 
+player = None
+
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
+player_group = pygame.sprite.Group()
 tile_images = {'wall': load_image('images\\wall.png'),
                'empty': load_image('images\\floor.png'),
                'hole': load_image('images\\hole.png')}
