@@ -126,6 +126,32 @@ class Pistol1(Gun):
         Bullet(pos[0], pos[1], self.bv, self.damage, 100)
 
 
+class Pistol2(Gun):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.normal_image = load_image('images\\pistol2.png', -1)
+        self.image = load_image('images\\pistol2.png', -1)
+        self.bv = 20
+        self.damage = 10
+        self.gap = 7
+
+    def shoot(self, pos):
+        Bullet(pos[0], pos[1], self.bv, self.damage, 20)
+
+
+class Pistol3(Gun):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.normal_image = load_image('images\\pistol3.png', -1)
+        self.image = load_image('images\\pistol3.png', -1)
+        self.bv = 20
+        self.damage = 5
+        self.gap = 2
+
+    def shoot(self, pos):
+        Bullet(pos[0], pos[1], self.bv, self.damage, 15)
+
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, v, damage, uni):
         super().__init__(bullet_group, all_sprites)
