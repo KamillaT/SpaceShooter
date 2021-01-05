@@ -1,6 +1,7 @@
 import math
 import os
 from random import uniform
+
 import pygame
 
 
@@ -110,6 +111,19 @@ class Pistol(Gun):
 
     def shoot(self, pos):
         Bullet(pos[0], pos[1], self.bv, self.damage, 30)
+
+
+class Pistol1(Gun):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.normal_image = load_image('images\\pistol1.png', -1)
+        self.image = load_image('images\\pistol1.png', -1)
+        self.bv = 30
+        self.damage = 15
+        self.gap = 30
+
+    def shoot(self, pos):
+        Bullet(pos[0], pos[1], self.bv, self.damage, 100)
 
 
 class Bullet(pygame.sprite.Sprite):
