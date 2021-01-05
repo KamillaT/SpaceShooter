@@ -1,7 +1,6 @@
 import math
 import os
-from random import uniform
-
+from random import uniform, randint
 import pygame
 
 
@@ -29,6 +28,60 @@ class Wall(pygame.sprite.Sprite):
         super().__init__(tiles_group, all_sprites, walls_group)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(enemy_group, all_sprites)
+        self.image = load_image('images\\slime.png', -1)
+        self.rect = self.image.get_rect().move(tile_width * pos_x,
+                                               tile_height * pos_y)
+        self.direction = 'right'
+        self.walk_cycle = 0
+        self.v = 1.5
+        self.sx, self.sy = self.rect.center
+        self.hp = 20 * 1.2 ** (floor - 1)
+        self.room = [pos_x // 20, pos_y // 20]
+        self.a = 256
+        self.drop = [8, 12]
+        self.killed = False
+
+    def update(self):
+        if self.hp > 0:
+            if self.room == player.room and not player.in_corridor:
+                x, y = player.rect.center
+                g = ((x - self.sx) ** 2 + (self.sy - y) ** 2) ** 0.5
+                if g != 0:
+                    vx = (x - self.sx) / g * self.v
+                    vy = (y - self.sy) / g * self.v
+                else:
+                    vx, vy = 0, 0
+                self.sx, self.sy = self.sx + vx, self.sy + vy
+                self.rect.center = (self.sx, self.sy)
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    fvx = self.v if vx >= 0 else -self.v
+                    fvy = self.v if vy >= 0 else -self.v
+                    self.sx = self.sx - vx
+                    self.sy = self.sy - vy + fvy
+                    self.rect.center = (self.sx, self.sy)
+                    if pygame.sprite.spritecollideany(self, walls_group):
+                        self.sx, self.sy = self.sx + fvx, self.sy - fvy
+                        self.rect.center = (self.sx, self.sy)
+                        if pygame.sprite.spritecollideany(self, walls_group):
+                            self.sx = self.sx - fvx
+                            self.rect.center = (self.sx, self.sy)
+        else:
+            if self.a == 256:
+                enemy_group.remove(self)
+                dead_group.add(self)
+                drop = randint(self.drop[0], self.drop[1])
+                player.gold += drop
+                GoldText(self.rect.left, self.rect.top, drop, 'death')
+            if self.a > 0:
+                self.a -= 5
+                self.image.set_alpha(self.a)
+            else:
+                self.kill()
 
 
 class Hitbox(pygame.sprite.Sprite):
@@ -152,6 +205,20 @@ class Pistol3(Gun):
         Bullet(pos[0], pos[1], self.bv, self.damage, 15)
 
 
+class Pistol4(Gun):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.normal_image = load_image('images\\pistol4.png', -1)
+        self.image = load_image('images\\pistol4.png', -1)
+        self.bv = 15
+        self.damage = 10
+        self.gap = 60
+
+    def shoot(self, pos):
+        for i in range(10):
+            Bullet(pos[0], pos[1], self.bv, self.damage, 10)
+
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, v, damage, uni):
         super().__init__(bullet_group, all_sprites)
@@ -176,6 +243,25 @@ class Bullet(pygame.sprite.Sprite):
         self.sy = self.sy + self.vy
         self.rect.left = self.sx
         self.rect.top = self.sy
+
+
+class GoldText(pygame.sprite.Sprite):
+    def __init__(self, x, y, gold, text_type):
+        if text_type == 'shop':
+            super().__init__(shop_text_group, all_sprites)
+            x *= tile_width
+            y *= tile_height
+        elif text_type == 'death':
+            super().__init__(gold_text_group, all_sprites)
+        self.image = pygame.font.Font(None, 40).render(str(gold), 1, pygame.Color('yellow'))
+        self.rect = self.image.get_rect().move(x + 7, y - 30)
+        self.x = 0
+
+    def update(self):
+        self.rect.top -= 1
+        self.x += 1
+        if self.x > 70:
+            self.kill()
 
 
 class Menu:
@@ -226,13 +312,17 @@ clock = pygame.time.Clock()
 fps = 60
 
 player = None
-
+floor = 0
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 gun_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+dead_group = pygame.sprite.Group()
+gold_text_group = pygame.sprite.Group()
+shop_text_group = pygame.sprite.Group()
 tile_images = {'wall': load_image('images\\wall.png'),
                'empty': load_image('images\\floor.png'),
                'hole': load_image('images\\hole.png')}
