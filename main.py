@@ -202,7 +202,9 @@ def draw_level():
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(enemy_group, all_sprites)
-        self.image = load_image('images\\monster.png', -1)
+        num = randint(0, 2)
+        name = enemy_pics[num]
+        self.image = load_image(f'images\\{name}', -1)
         self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                tile_height * pos_y)
         self.direction = 'right'
@@ -495,6 +497,304 @@ class Menu:
             pygame.display.flip()
 
 
+def death_anim():
+    global dead, player
+    a = 255
+    screen_sprite_group = pygame.sprite.Group()
+    screen_sprite = pygame.sprite.Sprite(screen_sprite_group)
+    screen_sprite.image = load_image('images\\screen.png').convert()
+    screen_sprite.rect = screen_sprite.image.get_rect()
+    while dead:
+        screen.fill(pygame.Color('white'))
+        screen_sprite.image.set_alpha(a)
+        screen_sprite_group.draw(screen)
+        player_group.draw(screen)
+        clock.tick(fps)
+        pygame.display.flip()
+        if a <= 0:
+            player.gun.kill()
+            player.kill()
+            dead = False
+            menu.in_menu = True
+        a -= 2
+
+
+def generate_map():
+    global floor
+    reset_groups()
+    draw_level()
+    floor += 1
+
+
+def run_map():
+    mini_room_group = pygame.sprite.Group()
+    in_map = True
+    timer = 0
+    for i in range(9):
+        for j in range(9):
+            if level_map[i][j] != '':
+                MiniRoom(j, i, mini_room_group, level_map[i][j][0], level_map[i][j][2])
+    while in_map:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_m and timer > 60:
+                    in_map = False
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    for s in mini_room_group:
+                        s.rect.left -= 5
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    for s in mini_room_group:
+                        s.rect.left += 5
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    for s in mini_room_group:
+                        s.rect.top += 5
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    for s in mini_room_group:
+                        s.rect.top -= 5
+        screen.fill(pygame.Color('black'))
+        mini_room_group.draw(screen)
+        clock.tick(fps)
+        pygame.display.flip()
+        timer += 1
+
+
+def run_escape():
+    global in_game
+    mouse_pos = (0, 0)
+    in_pause = True
+    timer = 60
+    image = load_image('images\\screen.png')
+    while in_pause:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE and timer == 0:
+                    in_pause = False
+            if event.type == pygame.MOUSEMOTION:
+                mouse_pos = event.pos
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.pos[0] in range(width // 4 + 204, (width // 4 + 204) + (width // 2 - 388)):
+                    if event.pos[1] in range(height // 4 + 120, height // 4 + 220):
+                        in_pause = False
+                    elif event.pos[1] in range(height // 4 + 320, height // 4 + 420):
+                        player.gun.kill()
+                        player.kill()
+                        in_pause = False
+                        in_game = False
+                        menu.in_menu = True
+        screen.blit(image, (0, 0))
+        pygame.draw.rect(screen, pygame.Color('brown'),
+                         (width // 4, height // 4, width // 2, height // 2), 40)
+        pygame.draw.rect(screen, pygame.Color('white'),
+                         (width // 4 + 20, height // 4 + 20, width // 2 - 40, height // 2 - 40), 0)
+        pygame.draw.rect(screen, pygame.Color('brown'),
+                         (width // 4 + 204, height // 4 + 120, width // 2 - 388, 100), 5)
+        pygame.draw.rect(screen, pygame.Color('brown'),
+                         (width // 4 + 204, height // 4 + 320, width // 2 - 388, 100), 5)
+        font = pygame.font.Font(None, 72)
+        screen.blit(font.render("Вернуться в игру", 1, pygame.Color('brown')),
+                    (width // 4 + 224, height // 4 + 140))
+        screen.blit(font.render("Выйти в меню", 1, pygame.Color('brown')),
+                    (width // 4 + 224, height // 4 + 340))
+        screen.blit(arrow, mouse_pos)
+        clock.tick(fps)
+        pygame.display.flip()
+        if timer > 0:
+            timer -= 1
+
+
+def run_game():
+    global screen, in_game, dead, floor
+    floor = 0
+    mouse_pos = (0, 0)
+    camera = Camera()
+    screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+    generate_map()
+    pygame.mouse.set_visible(False)
+    damage_timer = 0
+    shoot_timer = 0
+    map_timer = 0
+    escape_timer = 0
+    shooting = False
+    while in_game:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                in_game = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                shooting = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                shooting = False
+            if event.type == pygame.MOUSEMOTION:
+                mouse_pos = event.pos
+                player.gun.rotate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    player.move(0, 1)
+                    if pygame.sprite.spritecollideany(player.hitbox, walls_group):
+                        player.move(0, -1)
+                    if player.walk_cycle < 10:
+                        player.image = load_image('images\\player.png', -1)
+                    else:
+                        player.image = load_image('images\\player_2.png', -1)
+                    player.walk_cycle = (player.walk_cycle + 1) % 20
+                    player.direction = 'right'
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    player.move(0, -1)
+                    if pygame.sprite.spritecollideany(player.hitbox, walls_group):
+                        player.move(0, 1)
+                    if player.walk_cycle < 10:
+                        player.image = load_image('images\\player_left.png', -1)
+                    else:
+                        player.image = load_image('images\\player_left_2.png', -1)
+                    player.walk_cycle = (player.walk_cycle + 1) % 20
+                    player.direction = 'left'
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    player.move(1, -1)
+                    if pygame.sprite.spritecollideany(player.hitbox, walls_group):
+                        player.move(1, 1)
+                    if player.walk_cycle < 10:
+                        player.image = load_image('images\\player_back.png', -1)
+                    else:
+                        player.image = load_image('images\\player_back_2.png', -1)
+                    player.walk_cycle = (player.walk_cycle + 1) % 20
+                    player.direction = 'up'
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    player.move(1, 1)
+                    if pygame.sprite.spritecollideany(player.hitbox, walls_group):
+                        player.move(1, -1)
+                    if player.walk_cycle < 10:
+                        player.image = load_image('images\\player_front.png', -1)
+                    else:
+                        player.image = load_image('images\\player_front_2.png', -1)
+                    player.walk_cycle = (player.walk_cycle + 1) % 20
+                    player.direction = 'down'
+                if event.key == pygame.K_m and map_timer == 0:
+                    run_map()
+                    map_timer = 60
+                if event.key == pygame.K_ESCAPE and escape_timer == 0:
+                    pygame.image.save(screen, 'data\\images\\screen.png')
+                    run_escape()
+                    escape_timer = 60
+                if pygame.sprite.spritecollideany(player.hitbox, hole_group):
+                    hp = player.hp
+                    gold = player.gold
+                    gun = player.gun
+                    generate_map()
+                    player.hp = hp
+                    player.gold = gold
+                    player.gun = gun
+        rx, ry = player.room[0], player.room[1]
+        if level_map[ry][rx] != '' and not player.in_corridor:
+            if level_map[ry][rx][2] == 'full':
+                level_map[ry][rx][2] = 'running'
+                for sprite in level_map[ry][rx][3]:
+                    sprite.update()
+            elif level_map[ry][rx][2] == 'running' and level_map[ry][rx][1] == 0:
+                level_map[ry][rx][2] = 'cleared'
+                for sprite in level_map[ry][rx][3]:
+                    sprite.update()
+        if shooting:
+            if shoot_timer == 0:
+                player.gun.shoot(mouse_pos)
+                shoot_timer = player.gun.gap
+        camera.update(player)
+        for sprite in all_sprites:
+            camera.apply(sprite)
+        font = pygame.font.Font(None, 55)
+        clock.tick(fps)
+        screen.fill(pygame.Color('black'))
+        tiles_group.draw(screen)
+        temp_walls_group.draw(screen)
+        dead_group.update()
+        enemy_group.update()
+        bullet_group.update()
+        collide = pygame.sprite.groupcollide(bullet_group, enemy_group, True, False)
+        for i in range(len(collide)):
+            keys = list(collide.keys())
+            damage = keys[i].damage
+            for j in collide[keys[i]]:
+                if not player.in_corridor:
+                    j.hp -= damage
+                if j.hp <= 0 and not j.killed:
+                    level_map[ry][rx][1] -= 1
+                    j.killed = True
+                    player.gold += randint(j.drop[0], j.drop[1])
+        bought = False
+        collide = pygame.sprite.groupcollide(player_group, shop_items_group, False, False)
+        if collide:
+            key = list(collide.keys())[0]
+            if collide[key][0].item_type == 'heart':
+                bought = player.gold >= 300
+                if bought:
+                    player.hp += 1
+                    sig[0].kill()
+                    player.gold -= 300
+            else:
+                player.gun.kill()
+                if collide[key][0].item_type == 'pistol1':
+                    bought = player.gold >= 500
+                    if bought:
+                        player.gun = Pistol1(player.rect.left, player.rect.top)
+                        player.gold -= 500
+                elif collide[key][0].item_type == 'pistol2':
+                    bought = player.gold >= 1000
+                    if bought:
+                        player.gun = Pistol2(player.rect.left, player.rect.top)
+                        player.gold -= 1000
+                elif collide[key][0].item_type == 'pistol3':
+                    bought = player.gold >= 1500
+                    if bought:
+                        player.gun = Pistol3(player.rect.left, player.rect.top)
+                        player.gold -= 1500
+                elif collide[key][0].item_type == 'pistol4':
+                    bought = player.gold >= 2000
+                    if bought:
+                        player.gun = Pistol4(player.rect.left, player.rect.top)
+                        player.gold -= 2000
+                if bought:
+                    sig[-1].kill()
+            if bought:
+                collide[key][0].kill()
+        enemy_group.draw(screen)
+        dead_group.draw(screen)
+        if player.direction == 'up':
+            gun_group.draw(screen)
+            player_group.draw(screen)
+        else:
+            player_group.draw(screen)
+            gun_group.draw(screen)
+        pygame.sprite.groupcollide(bullet_group, walls_group, True, False)
+        pygame.sprite.groupcollide(bullet_group, bullet_stopper_group, True, False)
+        bullet_group.draw(screen)
+        screen.blit(font.render("Этаж " + str(floor), 1, pygame.Color('red')), (1730, 20))
+        screen.blit(font.render(str(player.gold), 1, pygame.Color('yellow')), (30, 100))
+        screen.blit(load_image('images\\coin.png', -1), (30 + 23 * len(str(player.gold)), 95))
+        if pygame.sprite.spritecollideany(player.hitbox, enemy_group) and damage_timer == 0:
+            player.hp -= 1
+            damage_timer = 120
+        gold_text_group.update()
+        gold_text_group.draw(screen)
+        shop_text_group.draw(screen)
+        shop_items_group.draw(screen)
+        n = 20
+        for i in range(player.hp):
+            screen.blit(load_image('images\\heart.png', -1), (n, 20))
+            n += 84
+        if player.hp <= 0:
+            pygame.image.save(screen, 'data\\images\\screen.png')
+            in_game = False
+            dead = True
+        screen.blit(arrow, mouse_pos)
+        pygame.display.flip()
+        if damage_timer > 0:
+            damage_timer -= 1
+        if shoot_timer > 0:
+            shoot_timer -= 1
+        if map_timer > 0:
+            map_timer -= 1
+        if escape_timer > 0:
+            escape_timer -= 1
+
+
 pygame.init()
 width, height = 1920, 1080
 screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
@@ -503,6 +803,7 @@ fps = 60
 level_names = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7', 'room8', 'room9',
                'room10']
 weapon_names = [['pistol1', 500], ['pistol2', 1000], ['pistol3', 1500], ['pistol4', 2000]]
+enemy_pics = ['monster.png', 'monster2.png', 'monster3.png']
 player = None
 room_map = []
 enemies_allowed = []
@@ -545,3 +846,15 @@ tile_images = {'wall': load_image('images\\wall.png'),
                'hole': load_image('images\\hole.png')}
 tile_width = 64
 tile_height = 64
+mw = 15
+mh = 15
+arrow = load_image('images\\scope.png', -1)
+menu = Menu()
+while in_game or menu.in_menu or dead:
+    if in_game:
+        run_game()
+    if menu.in_menu:
+        menu.run_menu()
+    if dead:
+        death_anim()
+
