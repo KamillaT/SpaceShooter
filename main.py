@@ -1,6 +1,6 @@
 import math
 import os
-from random import uniform, randint
+from random import uniform, randint, shuffle
 import pygame
 
 
@@ -61,6 +61,142 @@ class ShopItem(pygame.sprite.Sprite):
         self.image = load_image('images\\{}.png'.format(type), -1)
         self.item_type = type
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Camera:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    def apply(self, obj):
+        obj.rect.x = obj.rect.x + self.dx
+        obj.rect.y = obj.rect.y + self.dy
+        if type(obj) in [Enemy, Bullet]:
+            obj.sx += self.dx
+            obj.sy += self.dy
+
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - 1920 // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - 1080 // 2)
+
+
+def reset_groups():
+    tiles_group.empty()
+    player_group.empty()
+    walls_group.empty()
+    all_sprites.empty()
+    hole_group.empty()
+    bullet_group.empty()
+    enemy_group.empty()
+    dead_group.empty()
+    bullet_stopper_group.empty()
+    temp_walls_group.empty()
+    gold_text_group.empty()
+    shop_items_group.empty()
+    shop_text_group.empty()
+
+
+def load_level(level):
+    with open('data/levels/' + level, 'r') as mapFile:
+        level_map = [list(line.strip()) for line in mapFile]
+    return list(level_map)
+
+
+def draw_room(level, i, j, t):
+    global player, sig
+    if t == 'room':
+        ax = 0
+        ay = 0
+    elif t == 'hor':
+        ax = 15
+        ay = 5
+    else:
+        ax = 5
+        ay = 15
+    for y in range(len(level)):
+        for x in range(len(level[0])):
+            if level[x][y] == '.':
+                Tile('empty', x + j * 20 + ax, y + i * 20 + ay)
+            elif level[x][y] == '#':
+                Wall('wall', x + j * 20 + ax, y + i * 20 + ay)
+            elif level[x][y] == '@':
+                Tile('empty', x + j * 20, y + i * 20)
+                player = Player(x + j * 20, y + i * 20)
+            elif level[x][y] == '$':
+                Hole('hole', x + j * 20, y + i * 20)
+            elif level[x][y] == '%':
+                Tile('empty', x + j * 20, y + i * 20)
+                Enemy(x + j * 20, y + i * 20)
+            elif level[x][y] == ':':
+                level_map[i][j][3].append(TempWall(x + j * 20, y + i * 20))
+    if level_map[i][j][0] == 'shop' and t == 'room':
+        sig = []
+        ShopItem('heart', 3 + j * 20, 7 + i * 20)
+        sig.append(GoldText(3 + j * 20, 8.5 + i * 20, '300', 'shop'))
+        n = randint(0, 3)
+        ShopItem(weapon_names[n][0], 9 + j * 20, 7 + i * 20)
+        sig.append(GoldText(9 + j * 20, 8.5 + i * 20, str(weapon_names[n][1]), 'shop'))
+
+
+def draw_level():
+    global level_map
+    names = level_names
+    shuffle(names)
+    k = randint(5, 7)
+    names = names[:k]
+    names.append('shop')
+    shuffle(names)
+    k += 1
+    level_map = []
+    for i in range(9):
+        level_map.append([''] * 9)
+    level_map[3][3] = 'start'
+    names.append('end')
+    n = 0
+    while n <= k:
+        x, y = randint(1, 7), randint(1, 7)
+        if (level_map[y + 1][x] != '' or level_map[y - 1][x] != '' or level_map[y][x + 1] != '' or
+            level_map[y][x - 1] != '') and level_map[y][x] == '':
+            level_map[y][x] = names[n]
+            n += 1
+    hor = load_level('hor_corridor.txt')
+    vert = load_level('vert_corridor.txt')
+    for i in range(len(level_map)):
+        for j in range(len(level_map[0])):
+            if level_map[i][j] != '':
+                ea = level_map[i][j] not in ['start', 'end', 'shop']
+                level = load_level(level_map[i][j] + '.txt')
+                nel = ne = randint(3, 5)
+                while ne > 0 and ea:
+                    x = randint(1, 14)
+                    y = randint(1, 14)
+                    if level[x][y] == '.' and enemies_allowed[x][y]:
+                        level[x][y] = '%'
+                        ne -= 1
+                symb = ':' if ea else '.'
+                if ea:
+                    level_map[i][j] = [level_map[i][j], nel, 'full', []]
+                else:
+                    level_map[i][j] = [level_map[i][j], 0, 'main', []]
+                if level_map[i + 1][j] != '':
+                    level[6][14] = symb
+                    level[7][14] = symb
+                    level[8][14] = symb
+                    draw_room(hor, i, j, 'vert')
+                if level_map[i - 1][j] != '':
+                    level[6][0] = symb
+                    level[7][0] = symb
+                    level[8][0] = symb
+                if level_map[i][j + 1] != '':
+                    level[14][6] = symb
+                    level[14][7] = symb
+                    level[14][8] = symb
+                    draw_room(vert, i, j, 'hor')
+                if level_map[i][j - 1] != '':
+                    level[0][6] = symb
+                    level[0][7] = symb
+                    level[0][8] = symb
+                draw_room(level, i, j, 'room')
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -364,6 +500,8 @@ width, height = 1920, 1080
 screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 fps = 60
+level_names = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7', 'room8', 'room9',
+               'room10']
 weapon_names = [['pistol1', 500], ['pistol2', 1000], ['pistol3', 1500], ['pistol4', 2000]]
 player = None
 room_map = []
