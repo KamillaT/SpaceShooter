@@ -30,10 +30,43 @@ class Wall(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
+class TempWall(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(tiles_group, all_sprites, bullet_stopper_group)
+        self.image = tile_images['empty']
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        self.cond = 0
+
+    def update(self):
+        self.cond += 1
+        if self.cond == 1:
+            self.image = tile_images['wall']
+            bullet_stopper_group.remove(self)
+            walls_group.add(self)
+        elif self.cond == 2:
+            self.image = tile_images['empty']
+            walls_group.remove(self)
+
+
+class Hole(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(tiles_group, all_sprites, hole_group)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class ShopItem(pygame.sprite.Sprite):
+    def __init__(self, type, pos_x, pos_y):
+        super().__init__(shop_items_group, all_sprites)
+        self.image = load_image('images\\{}.png'.format(type), -1)
+        self.item_type = type
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(enemy_group, all_sprites)
-        self.image = load_image('images\\slime.png', -1)
+        self.image = load_image('images\\monster.png', -1)
         self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                tile_height * pos_y)
         self.direction = 'right'
@@ -264,6 +297,27 @@ class GoldText(pygame.sprite.Sprite):
             self.kill()
 
 
+class MiniRoom(pygame.sprite.Sprite):
+    def __init__(self, x, y, group, room_type, room_cond):
+        super().__init__(group)
+        image = 'mini_room'
+        if room_cond == 'main':
+            if room_type == 'shop':
+                image += '_coin'
+            elif room_type == 'start':
+                image += '_start'
+            elif room_type == 'end':
+                image += '_end'
+        elif room_cond == 'running':
+            image += '_running'
+        elif room_cond == 'cleared':
+            image += '_cleared'
+        if [x, y] == player.room:
+            image += '_current'
+        self.image = load_image('images\\' + image + '.png')
+        self.rect = self.image.get_rect().move(x * 150, y * 150)
+
+
 class Menu:
     def __init__(self):
         self.in_menu = True
@@ -310,8 +364,29 @@ width, height = 1920, 1080
 screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 fps = 60
-
+weapon_names = [['pistol1', 500], ['pistol2', 1000], ['pistol3', 1500], ['pistol4', 2000]]
 player = None
+room_map = []
+enemies_allowed = []
+for i in range(15):
+    enemies_allowed.append([])
+    for j in range(15):
+        enemies_allowed[i].append(True)
+for i in range(5, 10):
+    enemies_allowed[0][i] = False
+    enemies_allowed[1][i] = False
+    enemies_allowed[2][i] = False
+    enemies_allowed[12][i] = False
+    enemies_allowed[13][i] = False
+    enemies_allowed[14][i] = False
+    enemies_allowed[i][0] = False
+    enemies_allowed[i][1] = False
+    enemies_allowed[i][2] = False
+    enemies_allowed[i][12] = False
+    enemies_allowed[i][13] = False
+    enemies_allowed[i][14] = False
+dead = False
+in_game = False
 floor = 0
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
@@ -323,6 +398,10 @@ enemy_group = pygame.sprite.Group()
 dead_group = pygame.sprite.Group()
 gold_text_group = pygame.sprite.Group()
 shop_text_group = pygame.sprite.Group()
+bullet_stopper_group = pygame.sprite.Group()
+temp_walls_group = pygame.sprite.Group()
+hole_group = pygame.sprite.Group()
+shop_items_group = pygame.sprite.Group()
 tile_images = {'wall': load_image('images\\wall.png'),
                'empty': load_image('images\\floor.png'),
                'hole': load_image('images\\hole.png')}
