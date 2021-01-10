@@ -465,7 +465,7 @@ class Menu:
         pygame.mouse.set_visible(True)
         screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
         screen.fill(pygame.Color('black'))
-        screen.blit(load_image('images\\menu_background.jpg'), (0, 0))
+        screen.blit(load_image('images\\menu_background.png'), (0, 0))
         pygame.draw.rect(screen, pygame.Color('red'),
                          (width // 4, height // 3, width // 2, height // 6), 5)
         pygame.draw.rect(screen, pygame.Color('red'),
