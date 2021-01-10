@@ -463,7 +463,7 @@ class Menu:
 
     def draw_menu(self):
         pygame.mouse.set_visible(True)
-        screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+        screen = pygame.display.set_mode((1920, 1080))
         screen.fill(pygame.Color('black'))
         screen.blit(load_image('images\\menu_background.png'), (0, 0))
         pygame.draw.rect(screen, pygame.Color('red'),
@@ -472,7 +472,7 @@ class Menu:
                          (width // 4, height // 3 * 2, width // 2, height // 6), 5)
         font = pygame.font.Font(None, 290)
         screen.blit(font.render("Space Shoot", 1, pygame.Color('red')),
-                    (100, 100))
+                    (330, 100))
         font = pygame.font.Font(None, 200)
         screen.blit(font.render("Играть", 1, pygame.Color('red')),
                     (width // 3 + 70, height // 3 + 20))
@@ -607,7 +607,7 @@ def run_game():
     floor = 0
     mouse_pos = (0, 0)
     camera = Camera()
-    screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((1920, 1080))
     generate_map()
     pygame.mouse.set_visible(False)
     damage_timer = 0
@@ -797,7 +797,7 @@ def run_game():
 
 pygame.init()
 width, height = 1920, 1080
-screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 fps = 60
 level_names = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7', 'room8', 'room9',
