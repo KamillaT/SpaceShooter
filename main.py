@@ -29,7 +29,7 @@ def background_music():
 
 
 def load_menu_music():
-    fullname = os.path.join('data\\music','background_musiс_2.mp3')
+    fullname = os.path.join('data\\music','background_music_2.mp3')
     pygame.mixer.music.load(fullname)
     pygame.mixer.music.play(-1)
 
@@ -94,8 +94,8 @@ class Camera:
             obj.sy += self.dy
 
     def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - 1920 // 2)
-        self.dy = -(target.rect.y + target.rect.h // 2 - 1080 // 2)
+        self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
 
 
 def reset_groups():
@@ -339,7 +339,9 @@ class Gun(pygame.sprite.Sprite):
             self.image = pygame.transform.rotate(self.image, int(angle) - 180)
         else:
             self.image = pygame.transform.rotate(self.normal_image, int(angle))
-        self.rect = self.image.get_rect(center=(983, 560))
+        x = int(983 / 1920 * infoObject.current_w)
+        y = int(560 / 1080 * infoObject.current_h)
+        self.rect = self.image.get_rect(center=(x, y))
 
 
 class Blaster(Gun):
@@ -493,10 +495,12 @@ class Menu:
                          (width // 3, height // 3, width // 3, height // 6), 5)
         pygame.draw.rect(screen, pygame.Color('red'),
                          (width // 3, height // 3 * 2, width // 3, height // 6), 5)
-        font = pygame.font.Font('data\\fonts\\BAUHS93.TTF', 220)
+        size_1 = int(220 / 1920 * infoObject.current_w)
+        font = pygame.font.Font('data\\fonts\\BAUHS93.TTF', size_1)
         screen.blit(font.render("Space Shoot", 1, pygame.Color('red')),
                     (210, 10))
-        font = pygame.font.Font('data\\fonts\\comic.ttf', 120)
+        size_2 = int(120 / 1920 * infoObject.current_w)
+        font = pygame.font.Font('data\\fonts\\comic.ttf', size_2)
         screen.blit(font.render("Играть", 1, pygame.Color('red')),
                     (width // 3 + 70, height // 3 - 10))
         screen.blit(font.render("Выход", 1, pygame.Color('red')),
@@ -615,7 +619,8 @@ def run_escape():
                          (width // 4 + 204, height // 4 + 80, width // 2 - 388, 100), 5)
         pygame.draw.rect(screen, pygame.Color('brown'),
                          (width // 4 + 204, height // 4 + 280, width // 2 - 388, 100), 5)
-        font = pygame.font.Font(None, 60)
+        side = int(60 / 1920 * infoObject.current_w)
+        font = pygame.font.Font(None, side)
         screen.blit(font.render("Вернуться в игру", 1, pygame.Color('brown')),
                     (width // 4 + 224, height // 4 + 120))
         screen.blit(font.render("Выйти в меню", 1, pygame.Color('brown')),
