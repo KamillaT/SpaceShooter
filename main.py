@@ -831,7 +831,6 @@ level_names = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7', 'r
                'room10']
 weapon_names = [['minigun', 200], ['pistol', 300], ['sbc', 500], ['bfg9000', 650]]
 enemy_pics = ['monster.png', 'monster2.png', 'monster3.png']
-player = None
 room_map = []
 enemies_allowed = []
 for i in range(15):
