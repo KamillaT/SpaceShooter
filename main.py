@@ -16,6 +16,24 @@ def load_image(name, colorkey=None):
     return image
 
 
+def load_music(name):
+    fullname = os.path.join('data\\music', name)
+    sound = pygame.mixer.Sound(fullname)
+    sound.play()
+
+
+def background_music():
+    fullname = os.path.join('data\\music', 'background_music_.mp3')
+    pygame.mixer.music.load(fullname)
+    pygame.mixer.music.play(-1)
+
+
+def load_menu_music():
+    fullname = os.path.join('data\\music','background_musiс_2.mp3')
+    pygame.mixer.music.load(fullname)
+    pygame.mixer.music.play(-1)
+
+
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
@@ -280,7 +298,7 @@ class Player(pygame.sprite.Sprite):
         self.hitbox = Hitbox(self.x, self.y)
         self.rect = self.image.get_rect().move(self.x, self.y)
         self.gold = 0
-        self.gun = Pistol(self.rect.left, self.rect.top)
+        self.gun = Blaster(self.rect.left, self.rect.top)
 
     def move(self, dir, n):
         self.rect[dir] += 5 * n
@@ -324,63 +342,67 @@ class Gun(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(983, 560))
 
 
-class Pistol(Gun):
+class Blaster(Gun):
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
-        self.normal_image = load_image('images\\pistol.png', -1)
-        self.image = load_image('images\\pistol.png', -1)
+        self.normal_image = load_image('images\\blaster.png', -1)
+        self.image = load_image('images\\blaster.png', -1)
         self.bv = 10
         self.damage = 5
         self.gap = 20
 
     def shoot(self, pos):
         Bullet(pos[0], pos[1], self.bv, self.damage, 30)
+        self.sound = load_music('shoot.mp3')
 
 
-class Pistol1(Gun):
+class Minigun(Gun):
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
-        self.normal_image = load_image('images\\pistol1.png', -1)
-        self.image = load_image('images\\pistol1.png', -1)
+        self.normal_image = load_image('images\\minigun.png', -1)
+        self.image = load_image('images\\minigun.png', -1)
         self.bv = 30
         self.damage = 15
         self.gap = 30
 
     def shoot(self, pos):
         Bullet(pos[0], pos[1], self.bv, self.damage, 100)
+        self.sound = load_music('shoot.mp3')
 
 
-class Pistol2(Gun):
+class Pistol(Gun):
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
-        self.normal_image = load_image('images\\pistol2.png', -1)
-        self.image = load_image('images\\pistol2.png', -1)
+        self.normal_image = load_image('images\\pistol.png', -1)
+        self.image = load_image('images\\pistol.png', -1)
         self.bv = 20
         self.damage = 10
         self.gap = 7
 
     def shoot(self, pos):
         Bullet(pos[0], pos[1], self.bv, self.damage, 20)
+        self.sound = load_music('shoot_2.mp3')
 
 
-class Pistol3(Gun):
+class SBC(Gun):
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
-        self.normal_image = load_image('images\\pistol3.png', -1)
-        self.image = load_image('images\\pistol3.png', -1)
+        self.normal_image = load_image('images\\sbc.png', -1)
+        self.image = load_image('images\\sbc.png', -1)
         self.bv = 20
         self.damage = 5
         self.gap = 2
 
     def shoot(self, pos):
         Bullet(pos[0], pos[1], self.bv, self.damage, 15)
+        self.sound = load_music('shoot_2.mp3')
 
 
-class Pistol4(Gun):
+class BFG9000(Gun):
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
-        self.normal_image = load_image('images\\pistol4.png', -1)
-        self.image = load_image('images\\pistol4.png', -1)
+        self.normal_image = load_image('images\\bfg9000.png', -1)
+        self.image = load_image('images\\bfg9000.png', -1)
         self.bv = 15
         self.damage = 10
         self.gap = 60
@@ -388,6 +410,7 @@ class Pistol4(Gun):
     def shoot(self, pos):
         for i in range(10):
             Bullet(pos[0], pos[1], self.bv, self.damage, 10)
+            self.sound = load_music('shoot_3.mp3')
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -463,31 +486,32 @@ class Menu:
 
     def draw_menu(self):
         pygame.mouse.set_visible(True)
-        screen = pygame.display.set_mode((1920, 1080))
+        screen = pygame.display.set_mode((width, height))
         screen.fill(pygame.Color('black'))
         screen.blit(load_image('images\\menu_background.png'), (0, 0))
         pygame.draw.rect(screen, pygame.Color('red'),
-                         (width // 4, height // 3, width // 2, height // 6), 5)
+                         (width // 3, height // 3, width // 3, height // 6), 5)
         pygame.draw.rect(screen, pygame.Color('red'),
-                         (width // 4, height // 3 * 2, width // 2, height // 6), 5)
-        font = pygame.font.Font(None, 290)
+                         (width // 3, height // 3 * 2, width // 3, height // 6), 5)
+        font = pygame.font.Font('data\\fonts\\BAUHS93.TTF', 220)
         screen.blit(font.render("Space Shoot", 1, pygame.Color('red')),
-                    (330, 100))
-        font = pygame.font.Font(None, 200)
+                    (210, 10))
+        font = pygame.font.Font('data\\fonts\\comic.ttf', 120)
         screen.blit(font.render("Играть", 1, pygame.Color('red')),
-                    (width // 3 + 70, height // 3 + 20))
+                    (width // 3 + 70, height // 3 - 10))
         screen.blit(font.render("Выход", 1, pygame.Color('red')),
-                    (width // 3 + 70, height // 3 * 2 + 20))
+                    (width // 3 + 70, height // 3 * 2 - 10))
 
     def run_menu(self):
         global in_game
         self.draw_menu()
+        load_menu_music()
         while self.in_menu:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.in_menu = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.pos[0] in range(width // 4, width // 4 * 3):
+                    if event.pos[0] in range(width // 3, width // 3 * 2):
                         if event.pos[1] in range(height // 3, height // 2):
                             self.in_menu = False
                             in_game = True
@@ -504,6 +528,7 @@ def death_anim():
     screen_sprite = pygame.sprite.Sprite(screen_sprite_group)
     screen_sprite.image = load_image('images\\screen.png').convert()
     screen_sprite.rect = screen_sprite.image.get_rect()
+    load_music('game_over.mp3')
     while dead:
         screen.fill(pygame.Color('white'))
         screen_sprite.image.set_alpha(a)
@@ -573,9 +598,9 @@ def run_escape():
                 mouse_pos = event.pos
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.pos[0] in range(width // 4 + 204, (width // 4 + 204) + (width // 2 - 388)):
-                    if event.pos[1] in range(height // 4 + 120, height // 4 + 220):
+                    if event.pos[1] in range(height // 4 + 80, height // 4 + 220):
                         in_pause = False
-                    elif event.pos[1] in range(height // 4 + 320, height // 4 + 420):
+                    elif event.pos[1] in range(height // 4 + 280, height // 4 + 420):
                         player.gun.kill()
                         player.kill()
                         in_pause = False
@@ -587,14 +612,14 @@ def run_escape():
         pygame.draw.rect(screen, pygame.Color('white'),
                          (width // 4 + 20, height // 4 + 20, width // 2 - 40, height // 2 - 40), 0)
         pygame.draw.rect(screen, pygame.Color('brown'),
-                         (width // 4 + 204, height // 4 + 120, width // 2 - 388, 100), 5)
+                         (width // 4 + 204, height // 4 + 80, width // 2 - 388, 100), 5)
         pygame.draw.rect(screen, pygame.Color('brown'),
-                         (width // 4 + 204, height // 4 + 320, width // 2 - 388, 100), 5)
-        font = pygame.font.Font(None, 72)
+                         (width // 4 + 204, height // 4 + 280, width // 2 - 388, 100), 5)
+        font = pygame.font.Font(None, 60)
         screen.blit(font.render("Вернуться в игру", 1, pygame.Color('brown')),
-                    (width // 4 + 224, height // 4 + 140))
+                    (width // 4 + 224, height // 4 + 120))
         screen.blit(font.render("Выйти в меню", 1, pygame.Color('brown')),
-                    (width // 4 + 224, height // 4 + 340))
+                    (width // 4 + 224, height // 4 + 320))
         screen.blit(arrow, mouse_pos)
         clock.tick(fps)
         pygame.display.flip()
@@ -607,7 +632,7 @@ def run_game():
     floor = 0
     mouse_pos = (0, 0)
     camera = Camera()
-    screen = pygame.display.set_mode((1920, 1080))
+    screen = pygame.display.set_mode((width, height))
     generate_map()
     pygame.mouse.set_visible(False)
     damage_timer = 0
@@ -615,6 +640,7 @@ def run_game():
     map_timer = 0
     escape_timer = 0
     shooting = False
+    background_music()
     while in_game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -730,26 +756,26 @@ def run_game():
                     player.gold -= 300
             else:
                 player.gun.kill()
-                if collide[key][0].item_type == 'pistol1':
+                if collide[key][0].item_type == 'minigun':
+                    bought = player.gold >= 200
+                    if bought:
+                        player.gun = Minigun(player.rect.left, player.rect.top)
+                        player.gold -= 200
+                elif collide[key][0].item_type == 'pistol':
+                    bought = player.gold >= 300
+                    if bought:
+                        player.gun = Pistol(player.rect.left, player.rect.top)
+                        player.gold -= 300
+                elif collide[key][0].item_type == 'sbc':
                     bought = player.gold >= 500
                     if bought:
-                        player.gun = Pistol1(player.rect.left, player.rect.top)
+                        player.gun = SBC(player.rect.left, player.rect.top)
                         player.gold -= 500
-                elif collide[key][0].item_type == 'pistol2':
-                    bought = player.gold >= 1000
+                elif collide[key][0].item_type == 'bfg9000':
+                    bought = player.gold >= 650
                     if bought:
-                        player.gun = Pistol2(player.rect.left, player.rect.top)
-                        player.gold -= 1000
-                elif collide[key][0].item_type == 'pistol3':
-                    bought = player.gold >= 1500
-                    if bought:
-                        player.gun = Pistol3(player.rect.left, player.rect.top)
-                        player.gold -= 1500
-                elif collide[key][0].item_type == 'pistol4':
-                    bought = player.gold >= 2000
-                    if bought:
-                        player.gun = Pistol4(player.rect.left, player.rect.top)
-                        player.gold -= 2000
+                        player.gun = BFG9000(player.rect.left, player.rect.top)
+                        player.gold -= 650
                 if bought:
                     sig[-1].kill()
             if bought:
@@ -796,13 +822,14 @@ def run_game():
 
 
 pygame.init()
-width, height = 1920, 1080
+infoObject = pygame.display.Info()
+width, height = infoObject.current_w, infoObject.current_h
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 fps = 60
 level_names = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7', 'room8', 'room9',
                'room10']
-weapon_names = [['pistol1', 500], ['pistol2', 1000], ['pistol3', 1500], ['pistol4', 2000]]
+weapon_names = [['minigun', 200], ['pistol', 300], ['sbc', 500], ['bfg9000', 650]]
 enemy_pics = ['monster.png', 'monster2.png', 'monster3.png']
 player = None
 room_map = []
@@ -857,4 +884,3 @@ while in_game or menu.in_menu or dead:
         menu.run_menu()
     if dead:
         death_anim()
-
