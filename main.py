@@ -367,7 +367,7 @@ class Minigun(Gun):
 
     def shoot(self, pos):
         Bullet(pos[0], pos[1], self.bv, self.damage, 100)
-        self.sound = load_music('shoot.mp3')
+        self.sound = load_music('shoot_2.mp3')
 
 
 class Pistol(Gun):
