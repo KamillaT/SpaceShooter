@@ -496,15 +496,17 @@ class Menu:
         pygame.draw.rect(screen, pygame.Color('red'),
                          (width // 3, height // 3 * 2, width // 3, height // 6), 5)
         size_1 = int(220 / 1920 * infoObject.current_w)
+        place_1 = int(210 / 1440 * infoObject.current_w)
         font = pygame.font.Font('data\\fonts\\BAUHS93.TTF', size_1)
         screen.blit(font.render("Space Shoot", 1, pygame.Color('red')),
-                    (300, 10))
+                    (place_1, 10))
         size_2 = int(120 / 1920 * infoObject.current_w)
+        place_2 = int(70 / 1440 * infoObject.current_w)
         font = pygame.font.Font('data\\fonts\\comic.ttf', size_2)
         screen.blit(font.render("Играть", 1, pygame.Color('red')),
-                    (width // 3 + 90, height // 3 - 10))
+                    (width // 3 + place_2, height // 3 - 10))
         screen.blit(font.render("Выход", 1, pygame.Color('red')),
-                    (width // 3 + 90, height // 3 * 2 - 10))
+                    (width // 3 + place_2, height // 3 * 2 - 10))
 
     def run_menu(self):
         global in_game
