@@ -760,25 +760,32 @@ def run_game():
                     sig[0].kill()
                     player.gold -= 300
             else:
-                player.gun.kill()
-                if collide[key][0].item_type == 'minigun':
+                if collide[key][0].item_type == 'minigun' and \
+                        player.gun != Minigun(player.rect.left, player.rect.top):
                     bought = player.gold >= 200
                     if bought:
+                        player.gun.kill()
                         player.gun = Minigun(player.rect.left, player.rect.top)
                         player.gold -= 200
-                elif collide[key][0].item_type == 'pistol':
+                elif collide[key][0].item_type == 'pistol' \
+                        and player.gun != Pistol(player.rect.left, player.rect.top):
                     bought = player.gold >= 300
                     if bought:
+                        player.gun.kill()
                         player.gun = Pistol(player.rect.left, player.rect.top)
                         player.gold -= 300
-                elif collide[key][0].item_type == 'sbc':
+                elif collide[key][0].item_type == 'sbc'\
+                        and player.gun != SBC(player.rect.left, player.rect.top):
                     bought = player.gold >= 500
                     if bought:
+                        player.gun.kill()
                         player.gun = SBC(player.rect.left, player.rect.top)
                         player.gold -= 500
-                elif collide[key][0].item_type == 'bfg9000':
+                elif collide[key][0].item_type == 'bfg9000'\
+                        and player.gun != BFG9000(player.rect.left, player.rect.top):
                     bought = player.gold >= 650
                     if bought:
+                        player.gun.kill()
                         player.gun = BFG9000(player.rect.left, player.rect.top)
                         player.gold -= 650
                 if bought:
